@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,17 +47,17 @@ public class StudentController {
     }
 
     @PostMapping
-    Student createStudent(@RequestBody Student student) { // <-- Spring Boot's automatic marshalling will convert
+    ResponseEntity<Student> createStudent(@RequestBody Student student) { // <-- Spring Boot's automatic marshalling will convert
                                                           // incoming JSON to Student object
         students.add(student);
-        return student;
+        return new ResponseEntity<Student>(student, HttpStatus.CREATED);
     }
 
     /**
      * Updates the student if already exists, else creates it
      */
     @PutMapping("/{id}")
-    Student updateStudent(@PathVariable String id, @RequestBody Student student) {
+    ResponseEntity<Student> updateStudent(@PathVariable String id, @RequestBody Student student) {
         int itemIndex = -1;
 
         for (Student s : students) {
@@ -65,7 +67,11 @@ public class StudentController {
             }
         }
 
-        return student;
+        if (itemIndex == -1) {
+            return createStudent(student); // <-- ResponseEntity is not needed since method is already returning it
+        } else {
+            return new ResponseEntity<>(student, HttpStatus.OK);
+        }
     }
 
     @DeleteMapping("/{id}")
